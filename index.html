@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEV@Deakin - Daily Insider</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 完整保留原有样式 */
+        .bg-dark-custom {
+            background-color: #1f1f1f;
+            color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .hover-blue:hover {
+            color: #1a73e8 !important;
+            transition: color 0.3s ease;
+        }
+
+        .is-invalid {
+            border-color: #dc3545 !important;
+            background-image: none !important;
+        }
+
+        .is-valid {
+            border-color: #28a745 !important;
+        }
+
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 0.875em;
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+
+        .alert-custom-error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-custom-error .icon {
+            font-size: 2rem;
+            color: #dc3545;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body style="background-color: #121212; color: #ffffff; min-height: 100vh;">
+<nav class="navbar navbar-expand-lg navbar-dark py-4" style="background: linear-gradient(to bottom, #000000, #1f1f1f);">
+    <div class="container">
+        <a class="navbar-brand fs-2 hover-blue" href="#">
+            <i>DEV@Deakin</i>
+        </a>
+    </div>
+</nav>
+
+<div class="d-flex justify-content-center align-items-center py-5">
+    <div class="col-md-6 col-lg-4">
+        <div class="card bg-dark-custom">
+            <div class="card-header bg-transparent py-4">
+                <h1 class="text-center mb-0 text-white">
+                    SIGN UP FOR OUR DAILY INSIDER
+                </h1>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- 粉色错误提示框 (完全匹配图片样式) -->
+                <div id="customErrorAlert" class="alert-custom-error d-none">
+                    <i class="fas fa-exclamation-triangle icon"></i>
+                    <div>
+                        <h4 class="alert-heading mb-1" style="color: #721c24;">Error!</h4>
+                        <p id="customErrorMessage" class="mb-0" style="color: #721c24;"></p>
+                    </div>
+                </div>
+
+                <!-- 标准错误提示框 (保留备用) -->
+                <div id="errorAlert" class="alert alert-danger d-flex align-items-center d-none" role="alert">
+                    <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                    <div>
+                        <h4 class="alert-heading">Error!</h4>
+                        <p id="errorMessage" class="mb-0"></p>
+                    </div>
+                </div>
+
+                <!-- 成功提示框 -->
+                <div id="successAlert" class="alert alert-success d-flex align-items-center d-none" role="alert">
+                    <i class="fas fa-check-circle fa-2x me-3"></i>
+                    <div>
+                        <h4 class="alert-heading">Success!</h4>
+                        <p id="successMessage" class="mb-0"></p>
+                    </div>
+                </div>
+
+                <form id="subscriptionForm" novalidate>
+                    <div class="mb-4">
+                        <label for="emailInput" class="form-label fw-bold">
+                            <i class="fas fa-envelope me-2"></i>Enter your email
+                        </label>
+                        <input
+                                type="email"
+                                class="form-control form-control-lg"
+                                id="emailInput"
+                                name="email"
+                                placeholder="your.email@example.com"
+                                required
+                                pattern="[a-zA-Z0-9._%+-]+@(deakin\.edu\.au|qq\.com)"
+                        />
+
+                        <div class="invalid-feedback" id="emailError">
+                            Please enter a valid email address (e.g., name@deakin.edu.au)
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-secondary btn-lg w-100 py-3 fw-bold" id="submitBtn">
+                        <span id="buttonText">Subscribe Now</span>
+                        <span id="spinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="card-footer bg-transparent text-white text-center small py-3">
+                <i class="fas fa-lock me-1"></i> Secure & private. We follow Deakin's privacy policy.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('subscriptionForm');
+        const emailInput = document.getElementById('emailInput');
+        const emailError = document.getElementById('emailError');
+        const submitBtn = document.getElementById('submitBtn');
+        const buttonText = document.getElementById('buttonText');
+        const spinner = document.getElementById('spinner');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        const customErrorAlert = document.getElementById('customErrorAlert');
+        const customErrorMessage = document.getElementById('customErrorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+
+        function isValidEmail(email) {
+            return /^[a-zA-Z0-9._%+-]+@(deakin\.edu\.au|qq\.com)$/.test(email);
+        }
+
+
+        // 2. 邮箱输入实时验证
+        emailInput.addEventListener('input', function() {
+            const email = this.value;
+            emailError.textContent = "Please enter a valid email address (e.g., name@deakin.edu.au)";
+
+            if (email === '') {
+                this.classList.remove('is-invalid', 'is-valid');
+                emailError.style.display = 'none';
+            } else if (isValidEmail(email)) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+                emailError.style.display = 'none';
+            } else {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+                emailError.style.display = 'block';
+
+                if (!email.endsWith('@deakin.edu.au')) {
+                    emailError.textContent = "Email must end with @deakin.edu.au";
+                }
+            }
+        });
+
+
+        // 3. 表单提交处理
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // 隐藏所有提示
+            successAlert.classList.add('d-none');
+            errorAlert.classList.add('d-none');
+            customErrorAlert.classList.add('d-none');
+
+            // 验证邮箱
+            const email = emailInput.value.trim();
+
+            if (!isValidEmail(email)) {
+                emailInput.classList.add('is-invalid');
+                emailError.style.display = 'block';
+                return;
+            }
+
+            // 更新UI状态
+            submitBtn.disabled = true;
+            buttonText.classList.add('d-none');
+            spinner.classList.remove('d-none');
+            emailInput.blur();
+
+            try {
+                const response = await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    successMessage.textContent = data.message;
+                    successAlert.classList.remove('d-none');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Unknown server error');
+                }
+            } catch (error) {
+                customErrorMessage.textContent = error.message;
+                customErrorAlert.classList.remove('d-none');
+
+                console.error('failed to request:', error);
+                console.log('advise to verify:');
+                console.log('1. whether there same domains and protocols exist on the backend  ');
+                console.log('2. whether there is POST/api/subscribe route on the backend');
+                console.log('3. check the network request from browser console');
+            } finally {
+                submitBtn.disabled = false;
+                buttonText.classList.remove('d-none');
+                spinner.classList.add('d-none');
+            }
+        });
+
+        emailInput.dispatchEvent(new Event('input'));
+    });
+</script>
+</body>
+</html>
