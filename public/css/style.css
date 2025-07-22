@@ -1,0 +1,16 @@
+
+body {
+    background-color: #1f1f1f; /* 深灰黑色背景 */
+    color: #f5f5f5;            /* 浅字体，确保可读性 */
+}
+
+.card.bg-dark-custom {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+}
+
+.hover-blue:hover {
+    color: cornflowerblue !important; /* Bootstrap primary 蓝 */
+    transition: color 0.3s ease;
+}
